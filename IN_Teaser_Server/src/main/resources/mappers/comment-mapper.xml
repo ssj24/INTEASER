@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.web.curation.mappers.CommentMapper">
+
+
+
+	<!-- <insert id="insertComment" parameterType="Comment"> INSERT INTO FEED_COMMENT(USER_SEQ 
+		, USER_NICKNAME ,FEED_SEQ , COMMENT , ORDER_NUM ) VALUES(#{user_seq} , #{user_nickname} 
+		,#{feed_seq},#{comment} , 0 ) </insert> -->
+	<insert id="insertComment" parameterType="Comment"
+		useGeneratedKeys="true" keyProperty="comment_seq">
+		INSERT INTO
+		FEED_COMMENT(USER_SEQ ,
+		USER_NICKNAME ,FEED_SEQ , COMMENT , ORDER_NUM )
+		VALUES(#{user_seq} ,
+		#{user_nickname} ,#{feed_seq},#{comment} , 0 )
+	</insert>
+
+	<update id="updateGroupid" parameterType="Comment">
+		UPDATE FEED_COMMENT
+		SET GROUP_ID = #{comment_seq}
+		WHERE COMMENT_SEQ = #{comment_seq} AND
+		USER_SEQ = #{user_seq}
+	</update>
+
+	<insert id="insertreComment" parameterType="Comment">
+		INSERT INTO
+		FEED_COMMENT(USER_SEQ , USER_NICKNAME ,FEED_SEQ , COMMENT , GROUP_ID , ORDER_NUM )
+		select
+		#{user_seq} , #{user_nickname} ,#{feed_seq},#{comment} ,#{group_id}
+		, MAX(order_num)+1 as ORDER_NUM
+		FROM FEED_COMMENT
+		WHERE FEED_SEQ =
+		#{feed_seq} AND GROUP_ID = #{group_id}
+	</insert>
+
+	<update id="deleteComment" parameterType="Comment">
+		UPDATE FEED_COMMENT 
+		SET COMMENT = "" 
+		  , DELETEYN = "Y"
+		WHERE COMMENT_SEQ = #{comment_seq} AND USER_SEQ = #{user_seq}
+	</update>
+
+
+	<update id="deletereComment" parameterType="Comment">
+		UPDATE FEED_COMMENT 
+		SET COMMENT = "" 
+		  , DELETEYN = "Y"
+		WHERE COMMENT_SEQ = #{comment_seq} AND USER_SEQ = #{user_seq}
+	</update>
+
+	<select id="feedComment" parameterType="Feed"
+		resultType="Comment">
+		SELECT COMMENT_SEQ , USER_SEQ , USER_NICKNAME , COMMENT , GROUP_ID , ORDER_NUM , Date(INSERT_DATE) as INSERT_DATE
+		FROM FEED_COMMENT 
+		WHERE FEED_SEQ = #{feed_seq}
+		ORDER BY GROUP_ID ASC , ORDER_NUM ASC
+	</select>
+	
+	<select id="feedComment2" parameterType="Feed"
+		resultType="Comment">
+		SELECT COMMENT_SEQ , USER_SEQ , USER_NICKNAME , COMMENT , GROUP_ID , ORDER_NUM ,  Date(INSERT_DATE) as INSERT_DATE
+		FROM FEED_COMMENT 
+		WHERE FEED_SEQ = #{feed_seq} 
+		AND ORDER_NUM = 0 
+		AND DELETEYN = "N" 
+		ORDER BY GROUP_ID DESC , ORDER_NUM ASC 
+		LIMIT 2
+	</select>
+	
+	<select id="feedCommentTotalCount" parameterType="Feed"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) 
+		FROM FEED_COMMENT 
+		WHERE FEED_SEQ = #{feed_seq}
+		AND DELETEYN = "N"
+	</select>
+	
+	<select id="compare12" parameterType="Comment"
+		resultType="boolean">
+		SELECT IF(
+			( SELECT USER_SEQ 
+			FROM FEED 
+			WHERE FEED_SEQ = #{feed_seq}) = #{user_seq} , 
+				TRUE,FALSE)
+	</select>
+	
+	<select id="compare23" parameterType="Comment"
+		resultType="boolean">
+		SELECT IF(
+			( SELECT USER_SEQ 
+			FROM FEED_COMMENT 
+			WHERE COMMENT_SEQ = #{group_id}) = #{user_seq} , 
+				TRUE,FALSE)
+	</select>
+	
+	<select id="recompare12" parameterType="Comment"
+		resultType="boolean">
+		SELECT IF( 
+			( SELECT USER_SEQ 
+			FROM FEED 
+			WHERE FEED_SEQ = #{feed_seq}) = 
+			( SELECT USER_SEQ 
+			FROM FEED_COMMENT 
+			WHERE COMMENT_SEQ = #{group_id}) , 
+				TRUE , FALSE )
+	</select>
+	
+</mapper>

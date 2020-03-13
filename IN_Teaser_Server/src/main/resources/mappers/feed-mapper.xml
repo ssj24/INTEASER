@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.web.curation.mappers.FeedMapper">
+
+
+
+	<insert id="insertFeed" parameterType="Feed">
+		INSERT INTO
+		FEED(USER_SEQ ,
+		USER_NICKNAME , FEED_SUBJECT , FEED_CONTENTS , FEED_HASHTAG ,
+		FEED_SCOPE )
+		VALUES(#{user_seq} , #{user_nickname} , #{feed_subject}
+		,#{feed_contents},#{feed_hashtag} , #{feed_scope})
+	</insert>
+
+	<update id="updateFeed" parameterType="Feed">
+		UPDATE FEED 
+		SET
+		FEED_CONTENTS = #{feed_contents}
+		, FEED_HASHTAG = #{feed_hashtag}
+		, FEED_SCOPE = #{feed_scope}
+		, FEED_SUBJECT = #{feed_subject}
+		WHERE
+		USER_SEQ = #{user_seq}
+		AND FEED_SEQ = #{feed_seq}
+		AND DELETEYN = "N"
+	</update>
+
+
+
+	<update id="deleteFeed" parameterType="Feed">
+		UPDATE
+		FEED SET
+		FEED_CONTENTS = ""
+		, FEED_HASHTAG = ""
+		, DELETEYN = "Y"
+		WHERE USER_SEQ = #{user_seq}
+		AND FEED_SEQ = #{feed_seq}
+		
+	</update>
+
+
+
+
+	<select id="detailFeed" parameterType="Feed" resultType="Feed">
+		SELECT
+		FEED_SEQ , USER_SEQ , USER_NICKNAME , FEED_CONTENTS , FEED_SUBJECT
+		 , FEED_LIKE_CNT , FEED_SCRAP_CNT ,FEED_SCOPE , FEED_HASHTAG 
+		 , FEED_REPORT_CNT , INSERT_DATE
+		FROM FEED
+		WHERE FEED_SEQ = #{feed_seq}
+		AND DELETEYN = "N"
+	</select>
+
+	<insert id="feedLike" parameterType="FeedLike"
+		useGeneratedKeys="true" keyProperty="feedlike_seq">
+		INSERT INTO
+		FEED_LIKE(USER_SEQ , USER_NICKNAME , FEED_SEQ)
+		VALUE(#{user_seq} ,
+		#{user_nickname} , #{feed_seq})
+	</insert>
+
+	<update id="feedLikeAdd" parameterType="Feed">
+		UPDATE FEED
+		SET
+		FEED_LIKE_CNT = FEED_LIKE_CNT+1
+		WHERE FEED_SEQ = #{feed_seq}
+	</update>
+
+	<delete id="feedLikeCancel">
+		DELETE
+		FROM FEED_LIKE
+		WHERE FEEDLIKE_SEQ =
+		#{feedlike_seq}
+		AND USER_SEQ = #{user_seq}
+	</delete>
+
+	<update id="feedLikeSubtract" parameterType="Feed">
+		UPDATE FEED
+		SET
+		FEED_LIKE_CNT = FEED_LIKE_CNT-1
+		WHERE FEED_SEQ = #{feed_seq}
+		AND
+		FEED_LIKE_CNT != 0
+	</update>
+
+	<insert id="feedScrap" parameterType="FeedScrap"
+		useGeneratedKeys="true" keyProperty="feedscrap_seq">
+		INSERT INTO
+		FEED_SCRAP(USER_SEQ , USER_NICKNAME , FEED_SEQ)
+		VALUE(#{user_seq} ,
+		#{user_nickname} , #{feed_seq});
+	</insert>
+
+	<update id="feedScrapAdd" parameterType="Feed">
+		UPDATE FEED
+		SET
+		FEED_SCRAP_CNT = FEED_SCRAP_CNT+1
+		WHERE FEED_SEQ = #{feed_seq}
+	</update>
+
+	<delete id="feedScrapCancel" parameterType="FeedScrap">
+		DELETE
+		FROM FEED_SCRAP
+		WHERE FEEDSCRAP_SEQ = #{feedscrap_seq}
+		AND USER_SEQ = #{user_seq}
+	</delete>
+
+
+	<update id="feedScrapSubtract" parameterType="Feed">
+		UPDATE FEED
+		SET
+		FEED_SCRAP_CNT = FEED_SCRAP_CNT-1
+		WHERE FEED_SEQ = #{feed_seq}
+		AND
+		FEED_SCRAP_CNT != 0
+	</update>
+
+	<insert id="feedReport" parameterType="ReportList">
+		INSERT INTO
+		REPORT_LIST(USER_SEQ , USER_NICKNAME , FEED_SEQ , OPPONENT_SEQ ,
+		OPPONENT_NICKNAME )
+		VALUE(#{user_seq} , #{user_nickname} , #{feed_seq}
+		, #{opponent_seq} ,
+		#{opponent_nickname} )
+	</insert>
+
+
+	<update id="feedReportAdd" parameterType="Feed">
+		UPDATE FEED
+		SET
+		FEED_REPORT_CNT = FEED_REPORT_CNT+1
+		WHERE FEED_SEQ = #{feed_seq}
+	</update>
+
+
+	<insert id="feedHide" parameterType="FeedHide">
+		INSERT INTO
+		FEED_HIDE(USER_SEQ , USER_NICKNAME , FEED_SEQ )
+		VALUE(#{user_seq} ,
+		#{user_nickname} , #{feed_seq} )
+	</insert>
+
+
+	<insert id="userHide" parameterType="UserHide">
+		INSERT INTO
+		USER_HIDE(USER_SEQ , USER_NICKNAME , OPPONENT_SEQ , OPPONENT_NICKNAME
+		)
+		VALUE(#{user_seq} , #{user_nickname} , #{opponent_seq} ,
+		#{opponent_nickname} )
+	</insert>
+
+	<delete id="userHideCancel" parameterType="UserHide">
+		DELETE
+		FROM USER_HIDE
+		WHERE USERHIDE_SEQ = #{userhide_seq}
+		AND USER_SEQ = #{user_seq}
+	</delete>
+
+	<select id="loginUserLike" parameterType="Feed"
+		resultType="FeedLike">
+		SELECT FEEDLIKE_SEQ
+		FROM FEED_LIKE
+		WHERE USER_SEQ = #{user_seq}
+		AND	FEED_SEQ = #{feed_seq}
+	</select>
+
+ 	<select id="loginUserScrap" parameterType="Feed"
+		resultType="FeedScrap">
+		SELECT FEEDSCRAP_SEQ
+		FROM FEED_SCRAP
+		WHERE USER_SEQ = #{user_seq}
+		AND FEED_SEQ = #{feed_seq}
+	</select>
+ 
+ 
+	<select id="feedlisttest" parameterType="Feed" resultType="Feed">
+		SELECT FEED_SEQ , USER_SEQ , FEED_SUBJECT , FEED_CONTENTS
+		,
+		FEED_HASHTAG , INSERT_DATE
+		FROM FEED
+		ORDER BY INSERT_DATE DESC
+	</select>
+
+	<select id="userReportCheck" parameterType="Feed"
+		resultType="boolean">
+		SELECT * FROM REPORT_LIST
+		WHERE USER_SEQ = #{user_seq}
+		AND
+		FEED_SEQ = #{feed_seq}
+		AND OPPONENT_SEQ = #{opponent_seq}
+	</select>
+
+	<select id="newFeedList" parameterType="Feed" resultType="Feed">
+		SELECT
+			FEED_SEQ , USER_SEQ , FEED_SUBJECT 
+			, FEED_CONTENTS , FEED_HASHTAG , INSERT_DATE
+		FROM FEED
+		WHERE USER_SEQ NOT IN ( SELECT OPPONENT_SEQ FROM USER_HIDE WHERE USER_SEQ = #{user_seq} )
+		AND FEED_SEQ NOT IN ( SELECT FEED_SEQ FROM FEED_HIDE WHERE USER_SEQ = #{user_seq} )
+		AND DELETEYN = "N"
+		ORDER BY INSERT_DATE DESC
+		
+
+	</select>
+	
+	
+	<select id="followFeedList" parameterType="Feed" resultType="Feed">
+		SELECT
+			FEED_SEQ , USER_SEQ , FEED_SUBJECT 
+			, FEED_CONTENTS , FEED_HASHTAG , INSERT_DATE
+		FROM FEED
+		WHERE USER_SEQ NOT IN ( SELECT OPPONENT_SEQ FROM USER_HIDE WHERE USER_SEQ = #{user_seq} )
+			AND USER_SEQ IN ( SELECT OPPONENT_SEQ FROM FOLLOW_LIST WHERE FOLLOW_STATE = 2 AND USER_SEQ = #{user_seq}  )
+			AND	FEED_SEQ NOT IN ( SELECT FEED_SEQ FROM FEED_HIDE WHERE USER_SEQ = #{user_seq} )
+			AND DELETEYN = "N"
+		ORDER BY INSERT_DATE DESC
+	
+	</select>
+
+	<select id="setinfo" parameterType="ReportList" resultType="Communication">
+		SELECT USER_SEQ, USER_NICKNAME, 
+		(SELECT USER_NICKNAME FROM USER WHERE USER_SEQ = #{user_seq}) AS OPPONENT_NICKNAME 
+		FROM FEED 
+		WHERE FEED_SEQ = #{feed_seq};
+	</select>
+	
+	<insert id="reportnotice" parameterType="Communication">
+		INSERT INTO NOTICE( USER_SEQ, 
+		USER_NICKNAME, OPPONENT_NICKNAME, NOTICE_CONTENT , FEED_SEQ )
+		VALUES (#{user_seq}, #{user_nickname}, #{opponent_nickname}, 
+		#{temp} , #{feed_seq} )
+	</insert>
+
+	<select id="getnewid" resultType="Long">
+		SELECT INSERT_DATE+0  
+		FROM FEED 
+		ORDER BY INSERT_DATE DESC 
+		LIMIT 1
+	</select>
+	
+	<select id="getoldid" resultType="Long">
+		SELECT INSERT_DATE+0  
+		FROM FEED 
+		ORDER BY INSERT_DATE 
+		LIMIT 1
+	</select>
+	
+	<select id="hometimelineseq" parameterType="Pagination" resultType="Feed">
+		<![CDATA[
+		SELECT FEED_SEQ , USER_SEQ , #{user_seq} AS LOGIN_USER_SEQ
+		FROM FEED
+		WHERE INSERT_DATE+0 < #{max_id} 
+			AND INSERT_DATE+0 >= #{final_id} 
+			AND DELETEYN = "N" 
+			AND ( USER_SEQ IN (SELECT OPPONENT_SEQ FROM FOLLOW_LIST 
+								WHERE USER_SEQ = #{user_seq} 
+									AND FOLLOW_STATE = 2 
+									AND FEED_SCOPE < 3 ) 
+				OR FEED_SCOPE = 1 ) 
+			AND USER_SEQ NOT IN ( SELECT OPPONENT_SEQ FROM USER_HIDE WHERE USER_SEQ = #{user_seq} )
+			AND FEED_SEQ NOT IN ( SELECT FEED_SEQ FROM FEED_HIDE WHERE USER_SEQ = #{user_seq} )
+		ORDER BY INSERT_DATE DESC
+		LIMIT #{count};
+		]]>
+	</select>
+	
+	<select id="getmaxid" parameterType="Integer" resultType="Long">
+		SELECT INSERT_DATE+0  
+		FROM FEED 
+		WHERE FEED_SEQ = #{feed_seq}
+	</select>
+	
+	<select id="getdetail" parameterType="Feed" resultType="FeedDetail">
+		SELECT 
+			FEED_SEQ , USER_SEQ , USER_NICKNAME , FEED_SUBJECT , FEED_SCOPE , 
+			FEED_CONTENTS , FEED_HASHTAG , FEED_LIKE_CNT , INSERT_DATE , 
+            (SELECT IFNULL((SELECT FEEDLIKE_SEQ
+				FROM FEED_LIKE
+				WHERE USER_SEQ = #{user_seq}
+				AND FEED_SEQ = #{feed_seq}), 0)) as  FEEDLIKE_SEQ, 
+			(SELECT USER_AUTH FROM USER WHERE USER_SEQ = #{user_seq}) AS USER_AUTH , 
+			(SELECT USER_PROFILE_ROUTE FROM ABOUT_ME WHERE USER_SEQ = #{user_seq}) AS USER_PROFILE_ROUTE , 
+			(SELECT COUNT(COMMENT_SEQ) 
+			FROM FEED_COMMENT  
+			WHERE FEED_SEQ = #{feed_seq}
+				AND DELETEYN = "N") AS TOTALCOUNT , 
+			(SELECT IF(( 
+				SELECT COUNT(FEEDLIKE_SEQ) 
+				FROM FEED_LIKE 
+				WHERE USER_SEQ = #{login_user_seq} 
+					AND FEED_SEQ = #{feed_seq} ) 
+			= 0 , FALSE , TRUE ) ) AS LOGIN_USER_LIKE , 
+			(SELECT IF(( 
+				SELECT COUNT(FEEDSCRAP_SEQ)  
+				FROM FEED_SCRAP 
+				WHERE USER_SEQ = #{login_user_seq}
+					AND FEED_SEQ = #{feed_seq} ) 
+			= 0 , FALSE , TRUE ) ) AS LOGIN_USER_SCRAP 
+		FROM FEED
+		WHERE USER_SEQ = #{user_seq}
+			AND FEED_SEQ = #{feed_seq};
+	</select>
+	
+	<select id="followtimelineseq" parameterType="Pagination" resultType="Feed">
+		<![CDATA[
+		SELECT FEED_SEQ , USER_SEQ , #{user_seq} AS LOGIN_USER_SEQ
+		FROM FEED 
+		WHERE INSERT_DATE+0 < #{max_id} 
+			AND INSERT_DATE+0 >= #{final_id} 
+			AND DELETEYN = "N" 
+			AND USER_SEQ IN (SELECT OPPONENT_SEQ FROM FOLLOW_LIST 
+								WHERE USER_SEQ = #{user_seq} 
+									AND FOLLOW_STATE = 2 
+									AND FEED_SCOPE < 3 ) 
+			AND USER_SEQ NOT IN ( SELECT OPPONENT_SEQ FROM USER_HIDE WHERE USER_SEQ = #{user_seq} )
+			AND	FEED_SEQ NOT IN ( SELECT FEED_SEQ FROM FEED_HIDE WHERE USER_SEQ = #{user_seq} )
+		ORDER BY INSERT_DATE DESC 
+		LIMIT #{count};
+		]]>
+	</select>
+	
+	<select id="questionfeed" parameterType="Pagination"
+		resultType="Feed">
+		<![CDATA[
+		SELECT FEED_SEQ , USER_SEQ , #{user_seq} AS LOGIN_USER_SEQ
+		FROM FEED
+		WHERE FEED_SUBJECT = "질문" 
+			AND INSERT_DATE+0 < #{max_id} 
+			AND INSERT_DATE+0 >= #{final_id} 
+			AND DELETEYN = "N" 
+			AND ( USER_SEQ IN (SELECT OPPONENT_SEQ FROM FOLLOW_LIST 
+								WHERE USER_SEQ = #{user_seq} 
+									AND FOLLOW_STATE = 2 
+									AND FEED_SCOPE < 3 ) 
+				OR FEED_SCOPE = 1 ) 
+			AND USER_SEQ NOT IN ( SELECT OPPONENT_SEQ FROM USER_HIDE WHERE USER_SEQ = #{user_seq} )
+			AND FEED_SEQ NOT IN ( SELECT FEED_SEQ FROM FEED_HIDE WHERE USER_SEQ = #{user_seq} )
+		ORDER BY INSERT_DATE DESC
+		LIMIT #{count};
+		]]>
+	</select>
+	
+	<select id="questionfollowfeed" parameterType="Pagination"
+		resultType="Feed">
+		<![CDATA[
+		SELECT FEED_SEQ , USER_SEQ , #{user_seq} AS LOGIN_USER_SEQ
+		FROM FEED 
+		WHERE FEED_SUBJECT = "질문" 
+			AND INSERT_DATE+0 < #{max_id} 
+			AND INSERT_DATE+0 >= #{final_id} 
+			AND DELETEYN = "N" 
+			AND USER_SEQ IN (SELECT OPPONENT_SEQ FROM FOLLOW_LIST 
+								WHERE USER_SEQ = #{user_seq} 
+									AND FOLLOW_STATE = 2 
+									AND FEED_SCOPE < 3 ) 
+			AND USER_SEQ NOT IN ( SELECT OPPONENT_SEQ FROM USER_HIDE WHERE USER_SEQ = #{user_seq} )
+			AND	FEED_SEQ NOT IN ( SELECT FEED_SEQ FROM FEED_HIDE WHERE USER_SEQ = #{user_seq} )
+		ORDER BY INSERT_DATE DESC 
+		LIMIT #{count};
+		]]>
+	</select>
+	
+	<select id="isme" parameterType="FeedLike" resultType="boolean">
+		SELECT IF(
+			( SELECT USER_SEQ 
+			FROM FEED 
+			WHERE FEED_SEQ = #{feed_seq}) = #{user_seq} , 
+				TRUE,FALSE)
+	</select>
+</mapper>
+

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.web.curation.mappers.DmMapper">
+
+	<select id="haveserver" parameterType="DM" resultType="Integer">
+		SELECT COUNT(DM_MANAGEMENT_SEQ) 
+		FROM DM_MANAGEMENT 
+		WHERE USER_SEQ = #{user_seq} AND OPPONENT_SEQ = #{opponent_seq}
+	</select>
+	
+	<select id="newserverseq" parameterType="DM" resultType="Communication">
+		SELECT MAX(SERVER_SEQ) + 1 AS USER_SEQ, 
+			(SELECT USER_NICKNAME FROM USER WHERE USER_SEQ = #{user_seq}) AS USER_NICKNAME , 
+			(SELECT USER_NICKNAME FROM USER WHERE USER_SEQ = #{opponent_seq}) AS OPPONENT_NICKNAME 
+		FROM DM_MANAGEMENT
+	</select>
+	
+	<insert id="makeserver1" parameterType="DM">
+		INSERT INTO DM_MANAGEMENT(SERVER_SEQ , USER_SEQ , OPPONENT_SEQ) VALUES(#{server_seq}, #{user_seq}, #{opponent_seq})
+	</insert>
+	
+	<insert id="makeserver2" parameterType="DM">
+		INSERT INTO DM_MANAGEMENT(SERVER_SEQ , USER_SEQ , OPPONENT_SEQ) VALUES(#{server_seq}, #{opponent_seq}, #{user_seq})
+	</insert>
+	
+	<select id="getserver_seq" parameterType="DM" resultType="Integer">
+		SELECT DISTINCT SERVER_SEQ
+		FROM DM_MANAGEMENT
+		WHERE USER_SEQ = #{user_seq}
+		AND OPPONENT_SEQ = #{opponent_seq}
+	</select>
+	
+	<select id="getcommunication" parameterType="DM" resultType="DM">
+		SELECT SERVER_SEQ, CONTENT, USER_SEQ, OPPONENT_SEQ, (SELECT IF(USER_SEQ = #{user_seq}, TRUE, FALSE)) AS SPEAKER
+		FROM DM
+		WHERE SERVER_SEQ = #{server_seq}
+		ORDER BY INSERT_DATE
+	</select>
+	
+	<insert id="savedm" parameterType="DM">
+		INSERT INTO DM(SERVER_SEQ , USER_SEQ , OPPONENT_SEQ , CONTENT) VALUES(#{server_seq}, #{user_seq}, #{opponent_seq}, #{content})
+	</insert>
+	
+	<update id="closetime" parameterType="Integer">
+		UPDATE DM_MANAGEMENT SET 
+		LAST_TIME = NOW()
+		WHERE USER_SEQ = #{user_seq}
+	</update>
+	
+	<select id="getmylist" parameterType="Integer" resultType="Integer">
+		SELECT SERVER_SEQ 
+		FROM DM_MANAGEMENT
+		WHERE USER_SEQ = #{user_seq};
+	</select>
+	
+	<select id="getdata" parameterType="DmMagement" resultType="DmList">
+		SELECT SERVER_SEQ , USER_SEQ , OPPONENT_SEQ, 
+			(SELECT USER_NICKNAME FROM USER WHERE USER_SEQ = DM_MANAGEMENT.OPPONENT_SEQ) AS OPPONENT_NICKNAME , 
+			(SELECT CONTENT 
+			FROM DM 
+			WHERE SERVER_SEQ = #{server_seq} 
+			ORDER BY INSERT_DATE DESC 
+			LIMIT 1) AS CONTENT, 
+			(SELECT COUNT(DM_SEQ) 
+			FROM DM 
+			WHERE SERVER_SEQ = #{server_seq} 
+				AND TIMEDIFF( INSERT_DATE, DM_MANAGEMENT.LAST_TIME ) > 0 ) AS NEW_CONTENT_CNT 
+		FROM DM_MANAGEMENT
+		WHERE SERVER_SEQ = #{server_seq} 
+			AND USER_SEQ = #{user_seq}
+	</select>
+	
+	<select id="getopponent" parameterType="Integer" resultType="String">
+		SELECT USER_NICKNAME 
+		FROM USER 
+		WHERE USER_SEQ= #{opponent_seq};
+	</select>
+	
+</mapper>

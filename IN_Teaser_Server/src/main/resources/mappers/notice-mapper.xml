@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.web.curation.mappers.NoticeMapper">
+
+	<insert id="pushnoticebyfeed" parameterType="Communication">
+		INSERT INTO NOTICE(
+			USER_SEQ , USER_NICKNAME , OPPONENT_NICKNAME , NOTICE_CONTENT , FEED_SEQ )
+		VALUES ( 
+			( SELECT USER_SEQ FROM FEED
+			WHERE FEED_SEQ = #{user_seq}) , 
+			(SELECT USER_NICKNAME FROM FEED 
+			WHERE FEED_SEQ = #{user_seq}) , 
+			#{opponent_nickname} , 
+			#{temp} , 
+			#{user_seq} )
+	</insert>
+	
+	<insert id="pushnoticebycomment" parameterType="Communication">
+		INSERT INTO NOTICE(
+			USER_SEQ , USER_NICKNAME , OPPONENT_NICKNAME , NOTICE_CONTENT , FEED_SEQ)
+		VALUES ( 
+			( SELECT USER_SEQ FROM FEED_COMMENT
+			WHERE COMMENT_SEQ = #{user_seq}) , 
+			(SELECT USER_NICKNAME FROM FEED_COMMENT 
+			WHERE COMMENT_SEQ = #{user_seq}) , 
+			#{opponent_nickname} , 
+			#{temp} , 
+			(select distinct( FEED_SEQ ) FROM FEED_COMMENT WHERE GROUP_ID = #{user_seq} ) )
+	</insert>
+	
+	<insert id="pushnoticebyproject" parameterType="Communication">
+		INSERT INTO NOTICE (
+			USER_SEQ , USER_NICKNAME , OPPONENT_NICKNAME , NOTICE_CONTENT , PROJECT_SEQ )
+		VALUES ( 
+			( SELECT USER_SEQ 
+			FROM PROJECT 
+			WHERE PROJECT_SEQ = #{user_seq} ) , 
+			(SELECT USER_NICKNAME 
+			FROM PROJECT 
+			WHERE PROJECT_SEQ = #{user_seq}) , 
+			#{opponent_nickname} , 
+			#{temp} , 
+			#{user_seq} )
+	</insert>
+	
+	<select id="getuserauth" parameterType="Integer" resultType="Integer">
+		SELECT USER_AUTH 
+		FROM USER 
+		WHERE USER_SEQ = #{user_seq}
+	</select>
+</mapper>

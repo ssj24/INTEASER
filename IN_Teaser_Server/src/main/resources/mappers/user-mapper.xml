@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.web.curation.mappers.UserMapper">
+	<insert id="signup" parameterType="User">
+		INSERT INTO
+		USER(USER_PWD,USER_AUTH,USER_EMAIL,
+		USER_EMAIL_CERTIFICATION,USER_NICKNAME,USER_NAME,USER_SALT,LOGIN_TYPE
+		, USER_CERTIFICATION_DEADLINE)
+		VALUES(#{user_pwd},#{user_auth},#{user_email},
+		#{user_email_certification},#{user_nickname},#{user_name},#{user_salt},"teaser"
+		, DATE_ADD(NOW(), INTERVAL 30 MINUTE))
+	</insert>
+
+	<select id="getUserseq" parameterType="User" resultType="User">
+		SELECT USER_SEQ , USER_EMAIL , USER_NICKNAME
+		FROM USER
+		WHERE USER_EMAIL
+		= #{user_email}
+		AND USER_NAME = #{user_name}
+		AND USER_NICKNAME =
+		#{user_nickname}
+	</select>
+
+	<insert id="fillaboutme" parameterType="User">
+		INSERT INTO
+		ABOUT_ME(USER_SEQ , USER_NICKNAME)
+		VALUES(#{user_seq} ,
+		#{user_nickname})
+	</insert>
+
+	<insert id="fillportfolio" parameterType="User">
+		INSERT INTO
+		PORTFOLIO(USER_SEQ , USER_NICKNAME)
+		VALUES(#{user_seq} ,
+		#{user_nickname})
+	</insert>
+
+	<insert id="SNSsignup" parameterType="User">
+		INSERT INTO
+		USER(USER_PWD,USER_AUTH,USER_EMAIL,
+		USER_EMAIL_CERTIFICATION,USER_NICKNAME,USER_NAME,USER_SALT,LOGIN_TYPE
+		, USER_CERTIFICATION_DEADLINE)
+		VALUES(#{user_pwd},#{user_auth},#{user_email},
+		#{user_email_certification},#{user_nickname},#{user_name},#{user_salt},#{login_type}
+		, DATE_ADD(NOW(), INTERVAL 30 MINUTE))
+	</insert>
+
+
+	<select id="login" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT COUNT(USER_EMAIL)
+		FROM USER
+		WHERE
+		USER_EMAIL=#{user_email}
+		AND USER_PWD=#{user_pwd}
+		AND
+		USER_EMAIL_CERTIFICATION = "Y"
+	</select>
+
+
+	<select id="certification_check" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT COUNT(USER_EMAIL)
+		FROM USER
+		WHERE
+		USER_EMAIL=#{user_email}
+		AND
+		USER_EMAIL_CERTIFICATION = "Y"
+	</select>
+
+	<select id="login_data" parameterType="User" resultType="User">
+		SELECT
+		USER_SEQ , USER_AUTH , USER_EMAIL , USER_NICKNAME , USER_NAME , USER_UTILITYYN
+		FROM USER
+		WHERE
+		USER_EMAIL=#{user_email}
+		AND USER_PWD=#{user_pwd}
+		AND USER_EMAIL_CERTIFICATION = "Y"
+	</select>
+
+
+	<select id="SNSlogin" parameterType="User" resultType="User">
+		SELECT
+		USER_SEQ , USER_AUTH , USER_EMAIL , USER_NICKNAME , USER_NAME , USER_UTILITYYN
+		FROM USER
+		WHERE
+		USER_EMAIL=#{user_email}
+		AND
+		USER_EMAIL_CERTIFICATION = "Y"
+	</select>
+
+	<select id="EmailDuplicateCheck" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT COUNT(USER_EMAIL)
+		FROM USER
+		WHERE USER_EMAIL =
+		#{user_email}
+	</select>
+
+	<select id="NicknameDuplicateCheck" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT COUNT(USER_NICKNAME)
+		FROM USER
+		WHERE USER_NICKNAME = #{user_nickname}
+	</select>
+
+
+
+	<update id="saveCertificationCode" parameterType="User">
+		UPDATE USER
+		SET
+		USER_CERTIFICATION_CODE = #{user_certification_code}
+		,
+		USER_CERTIFICATION_DEADLINE = DATE_ADD(NOW(), INTERVAL 30 MINUTE)
+		WHERE USER_EMAIL = #{user_email}
+
+	</update>
+
+
+	<select id="Certification_Code_deadline" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT TIMESTAMPDIFF(MINUTE, USER_CERTIFICATION_DEADLINE , NOW() ) AS
+		DEADLINE
+		FROM USER
+		WHERE USER_EMAIL = #{user_email}
+		HAVING DEADLINE <![CDATA[  <=   ]]>
+		30
+	</select>
+
+
+	<update id="Certification_Code_Check" parameterType="User">
+		UPDATE USER
+		SET USER_CERTIFICATION_CODE = "" ,
+		USER_EMAIL_CERTIFICATION = "Y"
+		WHERE
+		USER_EMAIL = #{user_email}
+		AND USER_CERTIFICATION_CODE =
+		#{user_certification_code}
+	</update>
+
+	<select id="getSalt" parameterType="String" resultType="String">
+		SELECT
+		USER_SALT
+		FROM USER
+		WHERE USER_EMAIL = #{user_email}
+	</select>
+
+	<select id="findAll_user" resultType="User">
+		SELECT USER_AUTH ,
+		USER_EMAIL ,
+		USER_EMAIL_ONOFF , LOGIN_TYPE , USER_NICKNAME ,
+		USER_NAME ,
+		USER_NAME_ONOFF ,
+		USER_INTRO , USER_INTRO_ONOFF
+		FROM USER
+		WHERE USER_AUTH
+		!= 0
+	</select>
+
+	<select id="snsUserCheck" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT COUNT(user_email)
+		FROM USER
+		WHERE
+		USER_EMAIL=#{user_email}
+		AND
+		<!-- LOGIN_TYPE = #{login_type} AND -->
+		USER_EMAIL_CERTIFICATION = "Y"
+	</select>
+
+	<select id="MyAccountInfo" parameterType="User"
+		resultType="User">
+		SELECT USER_AUTH , USER_EMAIL ,
+		USER_EMAIL_ONOFF ,
+		LOGIN_TYPE
+		, USER_NICKNAME ,
+		USER_NAME , USER_NAME_ONOFF ,
+		USER_INTRO ,
+		USER_INTRO_ONOFF
+		FROM USER
+		WHERE USER_EMAIL = #{user_email}
+	</select>
+
+	<update id="MyAccountInfoUpdate" parameterType="User">
+		UPDATE USER
+		SET
+		USER_EMAIL_ONOFF = #{user_email_onoff} ,
+		USER_NAME =
+		#{user_name} ,
+		USER_NAME_ONOFF = #{user_name_onoff} ,
+		USER_INTRO =
+		#{user_intro} ,
+		USER_INTRO_ONOFF = #{user_intro_onoff}
+		WHERE USER_EMAIL = #{user_email}
+	</update>
+
+
+	<select id="MyProfile" parameterType="UserProfile"
+		resultType="UserProfile">
+		SELECT USER_AUTH , USER_EMAIL ,
+		USER_EMAIL_ONOFF ,
+		LOGIN_TYPE
+		, USER_NICKNAME ,
+		USER_NAME , USER_NAME_ONOFF ,
+		USER_INTRO ,
+		USER_INTRO_ONOFF
+		FROM USER
+		WHERE USER_EMAIL = #{user_email}
+	</select>
+
+
+	<select id="Follower_count" parameterType="UserProfile"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) AS FOLLOWER_COUNT
+		FROM FOLLOW_LIST
+		WHERE
+		USER_EMAIL = #{user_email}
+		AND FOLLOW_STATE = 1;
+	</select>
+
+	<select id="Following_count" parameterType="UserProfile"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) AS FOLLOWING_COUNT
+		FROM FOLLOW_LIST
+		WHERE
+		USER_EMAIL =
+		#{user_email}
+		AND FOLLOW_STATE = 2;
+	</select>
+
+	<select id="serch_nickname" parameterType="User"
+		resultType="User">
+		SELECT USER_NICKNAME , USER_EMAIL , USER_SEQ
+		FROM USER
+		WHERE
+		USER_NICKNAME
+		like CONCAT('%',#{user_nickname},'%')
+	</select>
+
+
+	<select id="serch_nickname_getuserseq"
+		parameterType="java.lang.String" resultType="java.lang.Integer">
+		SELECT USER_SEQ
+		FROM USER
+		WHERE
+		USER_NICKNAME = #{user_nickname}
+	</select>
+
+
+
+	<select id="search_keyword_list" parameterType="SearchKeyword"
+		resultType="SearchKeyword">
+		SELECT KEYWORD_SEQ , USER_SEQ , USER_NICKNAME ,
+		SEARCH_KEYWORD , INSERT_DATE
+		FROM
+		SEARCH_KEYWORD_LIST
+		WHERE USER_SEQ = #{user_seq}
+		ORDER BY
+		INSERT_DATE DESC
+		LIMIT 3
+	</select>
+
+	<select id="check_search_keyword" parameterType="SearchKeyword"
+		resultType="java.lang.Integer">
+		SELECT count(KEYWORD_SEQ)
+		FROM SEARCH_KEYWORD_LIST
+		WHERE
+		SEARCH_KEYWORD =
+		#{search_keyword}
+		AND USER_SEQ = #{user_seq}
+	</select>
+
+	<insert id="add_search_keyword" parameterType="SearchKeyword">
+		INSERT INTO
+		SEARCH_KEYWORD_LIST ( USER_SEQ , SEARCH_KEYWORD )
+		VALUES
+		(#{user_seq} ,
+		#{search_keyword})
+	</insert>
+
+	<update id="update_search_keyword" parameterType="SearchKeyword">
+		UPDATE
+		SEARCH_KEYWORD_LIST
+		SET
+		INSERT_DATE = now()
+		WHERE USER_SEQ =
+		#{user_seq}
+		AND SEARCH_KEYWORD = #{search_keyword}
+	</update>
+
+	<delete id="delete_search_keyword" parameterType="SearchKeyword">
+		DELETE FROM
+		SEARCH_KEYWORD_LIST
+		WHERE KEYWORD_SEQ = #{keyword_seq}
+	</delete>
+
+
+	<update id="update_pwd" parameterType="User">
+		UPDATE USER
+		SET
+		USER_PWD =
+		#{user_pwd}
+		WHERE USER_EMAIL = #{user_email}
+		AND USER_CERTIFICATION_CODE
+		= #{user_certification_code}
+
+	</update>
+
+	<update id="update_saltpwd" parameterType="User">
+		UPDATE USER
+		SET
+		USER_PWD = #{user_pwd}
+		, USER_SALT = #{user_salt}
+		WHERE USER_EMAIL =
+		#{user_email}
+
+	</update>
+
+	<select id="writer" parameterType="User" resultType="FeedDetail">
+		SELECT
+		USER.USER_SEQ , USER.USER_AUTH , USER.USER_NICKNAME ,
+		USER_PROFILE_ROUTE
+		FROM USER AS USER , ABOUT_ME AS ME
+		WHERE
+		USER.USER_SEQ = #{user_seq} AND ME.USER_SEQ = #{user_seq}
+
+	</select>
+
+	<select id="serchHashtag" parameterType="Feed" resultType="Feed">
+		SELECT *
+		FROM FEED
+		WHERE FEED_SEQ IN (
+					SELECT FEED_SEQ
+					FROM FEED
+					WHERE MATCH(FEED_HASHTAG)
+					AGAINST ( #{feed_hashtag} IN BOOLEAN MODE ) )
+
+	</select>
+
+
+
+</mapper>

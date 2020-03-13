@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.web.curation.mappers.AdminMapper">
+
+	<select id="effectiveseq" resultType="Integer">
+		SELECT USER_SEQ 
+		FROM USER
+		WHERE USER_EMAIL_CERTIFICATION = "Y"
+		AND USER_AUTH>0  
+		ORDER BY USER_SEQ;
+	</select>
+
+	<select id="effectiveseqnickname" parameterType="String"
+		resultType="Integer">
+		SELECT USER_SEQ 
+		FROM USER
+		WHERE USER_EMAIL_CERTIFICATION = "Y" 
+		AND USER_AUTH>0 
+		AND USER_NICKNAME LIKE
+		CONCAT('%',#{user_nickname},'%')
+		ORDER BY USER_SEQ;
+	</select>
+
+	<select id="effectivenormalseq" resultType="Integer">
+		SELECT USER_SEQ FROM
+		USER
+		WHERE USER_EMAIL_CERTIFICATION = "Y" 
+		AND USER_AUTH = 1
+		ORDER BY USER_SEQ;
+	</select>
+
+	<select id="effectivenormalseqnickname" parameterType="String"
+		resultType="Integer">
+		SELECT USER_SEQ FROM USER 
+		WHERE USER_EMAIL_CERTIFICATION = "Y" 
+		AND USER_AUTH = 1
+		AND
+		USER_NICKNAME LIKE CONCAT('%',#{user_nickname},'%')
+		ORDER BY USER_SEQ;
+	</select>
+
+	<select id="effectiverecruiterseq" resultType="Integer">
+		SELECT USER_SEQ
+		FROM USER 
+		WHERE USER_EMAIL_CERTIFICATION = "Y" 
+		AND USER_AUTH = 2
+		ORDER BY USER_SEQ;
+	</select>
+
+	<select id="effectiverecruiterseqnickname"
+		parameterType="String" resultType="Integer">
+		SELECT USER_SEQ FROM USER
+		WHERE USER_EMAIL_CERTIFICATION = "Y" 
+		AND USER_AUTH = 2
+		AND USER_NICKNAME LIKE CONCAT('%',#{user_nickname},'%')
+		ORDER BY USER_SEQ;
+	</select>
+
+	<select id="searchuser" parameterType="Integer"
+		resultType="UserManagement">
+		SELECT USER_SEQ, USER_NICKNAME, USER_EMAIL, USER_UTILITYYN,
+		(SELECT COUNT(USER_SEQ) FROM FOLLOW_LIST WHERE USER_SEQ=#{user_seq}
+		AND follow_state=1) AS FOLLOWER_CNT,
+		(SELECT COUNT(USER_SEQ) FROM FOLLOW_LIST WHERE USER_SEQ=#{user_seq} AND
+		follow_state=2) AS FOLLOWING_CNT
+		FROM USER
+		WHERE USER_SEQ = #{user_seq}
+		group by USER_SEQ, USER_NICKNAME, USER_EMAIL;
+	</select>
+
+	<select id="getlikecnt" parameterType="Integer"
+		resultType="Integer">
+		SELECT 
+		(select COALESCE(SUM(feed_like_cnt),0) from FEED where user_seq = #{user_seq}) 
+		+ (SELECT COALESCE(SUM(project_like_cnt),0) FROM PROJECT where user_seq = #{user_seq}) 
+		AS LIKE_CNT;
+		</select>
+
+	<select id="getpostcnt" parameterType="Integer"
+		resultType="Integer">
+		SELECT COUNT(USER_SEQ)
+		FROM FEED
+		WHERE USER_SEQ = #{user_seq}
+	</select>
+
+	<select id="getreported" parameterType="Integer"
+		resultType="Integer">
+		SELECT FEED_REPORT_CNT
+		FROM FEED
+		WHERE USER_SEQ = #{user_seq} AND FEED_REPORT_CNT > 0
+	</select>
+
+	<select id="getreportcnt" parameterType="Integer"
+		resultType="Integer">
+		SELECT COUNT(USER_SEQ)
+		FROM REPORT_LIST
+		WHERE USER_SEQ = #{user_seq};
+	</select>
+
+	<select id="hasUtility" parameterType="Integer"
+		resultType="String">
+		SELECT USER_UTILITYYN
+		FROM USER
+		WHERE USER_SEQ = #{user_seq};
+	</select>
+
+	<update id="suspension" parameterType="Integer">
+		UPDATE USER SET
+		USER_UTILITYYN = "I"
+		WHERE USER_SEQ = #{user_seq}
+	</update>
+
+	<update id="activation" parameterType="Integer">
+		UPDATE USER SET
+		USER_UTILITYYN = "N"
+		WHERE USER_SEQ = #{user_seq}
+	</update>
+
+	<select id="search_all_feed" resultType="Feed">
+		SELECT FEED_SEQ ,
+		USER_SEQ , USER_NICKNAME , FEED_LIKE_CNT , FEED_SCRAP_CNT ,
+		FEED_HASHTAG , FEED_REPORT_CNT , DATE_FORMAT(INSERT_DATE, '%Y-%m-%d %h:%m') AS FORMAT_DATE
+		FROM FEED
+		WHERE DELETEYN = "N"
+		ORDER BY FEED_SEQ
+	</select>
+
+	<select id="search_all_feed_by_nickname" resultType="Feed">
+		SELECT
+		FEED_SEQ , USER_SEQ , USER_NICKNAME , FEED_LIKE_CNT , FEED_SCRAP_CNT ,
+		FEED_HASHTAG , FEED_REPORT_CNT , DATE_FORMAT(INSERT_DATE, '%Y-%m-%d %h:%m') AS FORMAT_DATE 
+		FROM FEED
+		WHERE DELETEYN = "N"
+		AND USER_NICKNAME LIKE
+		CONCAT('%',#{user_nickname},'%')
+		ORDER BY FEED_SEQ
+	</select>
+
+	<select id="search_reported_feed" resultType="FeedManagement">
+		SELECT FEED_SEQ ,
+		USER_SEQ , USER_NICKNAME , DELETEYN , DATE_FORMAT(INSERT_DATE, '%Y-%m-%d %h:%m') AS FORMAT_DATE 
+		FROM FEED
+		WHERE FEED_SEQ IN (SELECT FEED_SEQ FROM REPORT_LIST WHERE ADMIN_CONFIRMYN = "N" )
+		AND DELETEYN = "N" 
+		ORDER BY FEED_SEQ
+	</select>
+	
+	<select id="getfeedreportcnt" parameterType="Integer"
+		resultType="Integer">
+		SELECT COUNT(REPORT_SEQ) FROM REPORT_LIST WHERE FEED_SEQ = #{feed_seq};
+	</select>
+
+	<select id="getreporter" parameterType="Integer"
+		resultType="Reporter">
+		SELECT USER_SEQ AS REPORTER_SEQ , USER_NICKNAME AS REPORTER_NICKNAME , REPORT_CONTENT
+		FROM REPORT_LIST
+		WHERE FEED_SEQ = #{feed_seq};
+	</select>
+
+	<select id="search_reported_feed_by_nickname"
+		parameterType="String" resultType="FeedManagement">
+		SELECT FEED_SEQ ,
+		USER_SEQ , USER_NICKNAME , FEED_REPORT_CNT , DELETEYN , DATE_FORMAT(INSERT_DATE, '%Y-%m-%d %h:%m') AS FORMAT_DATE 
+		FROM FEED
+		WHERE FEED_SEQ IN (SELECT FEED_SEQ FROM REPORT_LIST WHERE ADMIN_CONFIRMYN = "N" )
+		AND DELETEYN = "N" 
+		AND USER_NICKNAME LIKE CONCAT('%',#{user_nickname},'%')
+		ORDER BY FEED_SEQ
+	</select>
+
+	<select id="isadmin" parameterType="Integer" resultType="Integer">
+		SELECT USER_AUTH 
+		FROM USER 
+		WHERE USER_SEQ = #{user_seq}
+	</select>
+	
+	<update id="feeddelete" parameterType="Integer">
+		UPDATE FEED SET 
+		DELETEYN = "I" 
+		WHERE FEED_SEQ = #{feed_seq}
+	</update>
+	
+	<update id="admincheck" parameterType="Integer">
+		UPDATE REPORT_LIST SET 
+		ADMIN_CONFIRMYN = "Y" 
+		WHERE FEED_SEQ = #{feed_seq}
+	</update>
+	
+	<select id="getusers"  resultType="Integer">
+		SELECT COUNT(USER_SEQ) 
+		FROM USER 
+		WHERE USER_AUTH = 1
+	</select>
+	
+	<select id="getrecruiters"  resultType="Integer">
+		SELECT COUNT(USER_SEQ) 
+		FROM USER 
+		WHERE USER_AUTH = 2
+	</select>
+	
+	<select id="poststart"  resultType="Date">
+		<![CDATA[
+		SELECT IF(
+			(SELECT MIN(DATE(INSERT_DATE)) FROM FEED) < (SELECT MIN(DATE(INSERT_DATE)) FROM PROJECT) ,
+			(SELECT MIN(DATE(INSERT_DATE)) FROM FEED),(SELECT MIN(DATE(INSERT_DATE)) FROM PROJECT));
+		]]>
+	</select>
+	
+	<select id="pjtstart"  resultType="Integer">
+		SELECT MIN(DATE(INSERT_DATE))+0 AS DATE FROM PROJECT;
+	</select>
+	
+	<select id="term" resultType="Integer">
+		<![CDATA[
+		SELECT DATEDIFF(
+			(SELECT CURDATE()), 
+			(SELECT IF(
+				(SELECT MIN(DATE(INSERT_DATE)) FROM FEED) < (SELECT MIN(DATE(INSERT_DATE)) FROM PROJECT) ,
+				(SELECT MIN(DATE(INSERT_DATE)) FROM FEED),(SELECT MIN(DATE(INSERT_DATE)) FROM PROJECT)))
+    	)+1 AS DIFF;
+    	]]>
+	</select>
+	
+	<select id="getpostingcnt"  parameterType="String" resultType="Posting">
+		SELECT #{date} AS DATE, 
+		(
+			(SELECT COALESCE(COUNT(FEED_SEQ),0) 
+				FROM FEED 
+				WHERE DATE_FORMAT(INSERT_DATE, '%Y-%m-%d') = #{date} ) 
+			+ (SELECT COALESCE(COUNT(PROJECT_SEQ),0) 
+				FROM PROJECT 
+				WHERE DATE_FORMAT(INSERT_DATE, '%Y-%m-%d') = #{date} ) 
+		)AS POSTING_CNT; 
+	</select>
+	
+	<select id="effectiverejectedseq" resultType="Integer">
+		SELECT USER_SEQ 
+		FROM USER 
+		WHERE USER_UTILITYYN = "I"
+		ORDER BY USER_SEQ;
+	</select>
+
+	<select id="effectiverejectedseqnickname" parameterType="String"
+		resultType="Integer">
+		SELECT USER_SEQ 
+		FROM USER
+		WHERE USER_UTILITYYN = "I"
+		AND
+		USER_NICKNAME LIKE CONCAT('%',#{user_nickname},'%')
+		ORDER BY USER_SEQ;
+	</select>
+	
+	<insert id="pushnotice" parameterType="Communication">
+		INSERT INTO NOTICE( USER_SEQ, 
+		USER_NICKNAME, OPPONENT_NICKNAME, NOTICE_CONTENT )
+		VALUES ((SELECT USER_SEQ FROM FEED WHERE FEED_SEQ = #{user_seq}), (SELECT USER_NICKNAME FROM FEED WHERE FEED_SEQ = #{user_seq}), #{opponent_nickname}, 
+		#{temp});
+	</insert>
+</mapper>

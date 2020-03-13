@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.web.curation.mappers.PortfolioMapper">
+
+	<select id="portfolioInfo" parameterType="Portfolio"
+		resultType="Portfolio">
+		SELECT PORTFOLIO_ONOFF
+		FROM PORTFOLIO
+		WHERE USER_SEQ =
+		${user_seq}
+	</select>
+
+	<update id="updateonoff" parameterType="Portfolio">
+		UPDATE PORTFOLIO
+		SET
+		PORTFOLIO_ONOFF = #{portfolio_onoff}
+		WHERE USER_SEQ = ${user_seq}
+	</update>
+
+	<select id="selectUserlink" parameterType="UserLink"
+		resultType="UserLink">
+		SELECT USERLINK_SEQ ,USER_SEQ , USER_NICKNAME , LINKNAME , LINK
+		FROM USER_LINK
+		WHERE USER_SEQ = #{user_seq}
+	</select>
+
+	<insert id="insertUserlink" parameterType="UserLink">
+		INSERT INTO USER_LINK
+		(USER_SEQ , USER_NICKNAME , LINKNAME , LINK)
+		VALUES(#{user_seq},#{user_nickname},#{linkname},#{link})
+	</insert>
+
+	<update id="updateUserlink" parameterType="UserLink">
+		UPDATE USER_LINK
+		SET
+		LINKNAME = #{linkname} , LINK = #{link}
+		WHERE USER_SEQ = #{user_seq}
+		AND USERLINK_SEQ = #{userlink_seq}
+	</update>
+
+	<delete id="deleteUserlink" parameterType="UserLink">
+		DELETE FROM USER_LINK
+		WHERE USER_SEQ = #{user_seq}
+		AND USERLINK_SEQ = #{userlink_seq}
+	</delete>
+
+	<insert id="insertProject1" parameterType="Project"
+			useGeneratedKeys="true" keyProperty="project_seq">
+		INSERT INTO
+		PROJECT	(USER_SEQ , USER_NICKNAME,
+			PORTFOLIO_SEQ,PROJECT_NAME,PROJECT_INTRO)
+		SELECT #{user_seq} , #{user_nickname}
+			, portfolio_seq as portfolio_seq ,#{project_name},#{project_intro}
+		FROM PORTFOLIO
+		WHERE USER_SEQ = #{user_seq}
+	</insert>
+
+	<update id="insertProject2" parameterType="Project">
+		UPDATE PROJECT
+		SET
+		PROJECT_START = #{project_start} ,PROJECT_END = #{project_end} 
+		, PROJECT_DEV_SETTING = #{project_dev_setting}
+		, PROJECT_PERSONNEL = #{project_personnel} 
+		, PROJECT_POSITION = #{project_position}
+		, PROJECT_CONTENT = #{project_content}
+		, PROJECT_LINK = #{project_link}
+		<!-- , PROJECT_HASHTAG = #{project_hashtag} --> 
+		WHERE PROJECT_SEQ = #{project_seq}
+		AND USER_SEQ =
+		#{user_seq}
+	</update>
+
+	<update id="updateProject" parameterType="Project">
+		UPDATE
+		PROJECT
+		SET
+		project_name = #{project_name} , project_intro = #{project_intro}
+		, PROJECT_START = #{project_start} 
+		, PROJECT_END = #{project_end} 
+		, PROJECT_DEV_SETTING = #{project_dev_setting}
+		, PROJECT_PERSONNEL = #{project_personnel} 
+		, PROJECT_POSITION = #{project_position}
+		, PROJECT_CONTENT = #{project_content} 
+		, PROJECT_LINK = #{project_link}
+		<!-- , PROJECT_HASHTAG =	#{project_hashtag} -->
+		WHERE PROJECT_SEQ = #{project_seq}
+		AND USER_SEQ =
+		#{user_seq}
+	</update>
+
+	<update id="deleteProject" parameterType="Project">
+		UPDATE PROJECT
+		SET
+		PROJECT_NAME = "" , PROJECT_INTRO = ""
+		, PROJECT_START = NULL
+		, PROJECT_END = NULL , PROJECT_DEV_SETTING = ""
+		, PROJECT_PERSONNEL = 0
+		, PROJECT_POSITION = ""
+		, PROJECT_CONTENT = "" <!-- , PROJECT_HASHTAG = "" -->
+		, DELETEYN = "Y"
+		WHERE PROJECT_SEQ = #{project_seq}
+		AND USER_SEQ =
+		#{user_seq}
+	</update>
+
+	<select id="detailProject" parameterType="Project"
+		resultType="ProjectDetail">
+		SELECT PROJECT_SEQ , PROJECT_NAME , PROJECT_INTRO , PROJECT_START 
+		, PROJECT_END , PROJECT_DEV_SETTING , PROJECT_PERSONNEL 
+		, PROJECT_POSITION , PROJECT_CONTENT  <!--, PROJECT_HASHTAG --> 
+		, PROJECT_LIKE_CNT , PROJECT_LINK , USER_NICKNAME
+		FROM PROJECT
+		WHERE PROJECT_SEQ = #{project_seq}
+		<!-- AND USER_SEQ =
+		#{user_seq} -->
+		AND DELETEYN = "N"
+	</select>
+
+	<select id="projectList" parameterType="Project"
+		resultType="Project">
+		SELECT PROJECT_SEQ , PROJECT_NAME , PROJECT_INTRO 
+		, USER_SEQ , USER_NICKNAME , PROJECT_DEV_SETTING <!--,  PROJECT_HASHTAG -->
+		FROM PROJECT
+		WHERE USER_SEQ = #{user_seq}
+		AND DELETEYN != "Y"
+	</select>
+
+	<insert id="projectLike" parameterType="ProjectLike"
+	 	useGeneratedKeys="true" keyProperty="project_like_seq">
+		INSERT INTO PROJECT_LIKE
+		(USER_SEQ , USER_NICKNAME , PROJECT_SEQ )
+		VALUES(#{user_seq},#{user_nickname},#{project_seq})
+	</insert>
+	
+	
+	<update id="projectLikeAdd" parameterType="Project">
+		UPDATE PROJECT
+		SET
+		PROJECT_LIKE_CNT = PROJECT_LIKE_CNT+1
+		WHERE PROJECT_SEQ = #{project_seq}
+	</update>
+	
+
+	<delete id="projectLikeCancel">
+		DELETE FROM PROJECT_LIKE
+		WHERE PROJECT_LIKE_SEQ = #{project_like_seq}
+		AND USER_SEQ = #{user_seq}
+	</delete>
+
+	<update id="projectLikeSubtract" parameterType="Project">
+		UPDATE PROJECT
+		SET
+		PROJECT_LIKE_CNT = PROJECT_LIKE_CNT-1
+		WHERE PROJECT_SEQ = #{project_seq}
+		AND	PROJECT_LIKE_CNT != 0
+	</update>
+
+
+	<!-- <select id="projectSearch" parameterType="map" resultType="Project"> 
+		SELECT TECHNICAL_STACK FROM ABOUT_ME WHERE TECHNICAL_STACK LIKE #{technical_stack} 
+		</select> -->
+
+	<select id="projectDevSettingList"
+		parameterType="java.lang.Integer" resultType="Project">
+		SELECT PROJECT_DEV_SETTING
+		FROM PROJECT
+		WHERE USER_SEQ = #{user_seq}
+		AND PROJECT_DEV_SETTING != ""
+
+	</select>
+
+
+	<select id="projectSearch" parameterType="Project"
+		resultType="ProjectDetail">
+		SELECT PROJECT_SEQ , USER_SEQ , USER_NICKNAME , PORTFOLIO_SEQ ,
+		PROJECT_NAME
+		, PROJECT_INTRO
+		, PROJECT_START , PROJECT_END 
+		, PROJECT_DEV_SETTING , PROJECT_PERSONNEL
+		, PROJECT_POSITION , PROJECT_CONTENT 
+		, PROJECT_LIKE_CNT <!-- , PROJECT_HASHTAG --> , INSERT_DATE
+		FROM PROJECT
+		where 1 = 1
+		<if test=' project_dev_setting != "" '>  <!-- project_dev_setting != null or  project_dev_setting != ''  -->
+			AND PROJECT_SEQ IN (
+				SELECT project_seq FROM PROJECT WHERE MATCH (project_dev_setting) 
+				AGAINST (#{project_dev_setting} IN BOOLEAN MODE)
+			)
+		</if>
+		<if test='project_name != "" '> <!--   project_name != null or  project_name != '' -->
+			AND PROJECT_NAME LIKE CONCAT('%',#{project_name},'%')
+		</if>
+		<if test='  user_nickname != "" '> <!--  user_nickname != null or user_nickname != '' -->
+			AND USER_NICKNAME LIKE CONCAT('%',#{user_nickname},'%')
+		</if>
+		<if test=' project_start != null  '> <!--  project_start != null  or project_start != ''   -->
+			<![CDATA[
+	        AND PROJECT_START <= DATE(#{project_start})
+	    	]]> 
+		</if>
+		<if test='project_end != null '> <!--project_end != null  or   or project_end != ''  -->
+			<![CDATA[
+	        AND  DATE(#{project_end}) <= PROJECT_END
+	    	]]>
+		</if>
+
+
+	</select>
+	
+	<select id="isme" parameterType="ProjectLike" resultType="boolean">
+		SELECT IF(
+			( SELECT USER_SEQ 
+			FROM PROJECT 
+			WHERE PROJECT_SEQ = #{project_seq}) = #{user_seq} , 
+				TRUE,FALSE) 
+	</select>
+	
+	<select id="loginUserLike" parameterType="ProjectLike"
+		resultType="ProjectLike">
+		SELECT PROJECT_LIKE_SEQ
+		FROM PROJECT_LIKE
+		WHERE USER_SEQ = #{user_seq}
+		AND	PROJECT_SEQ = #{project_seq}
+	</select>
+	
+	<select id="getuserProfileRoute" parameterType="java.lang.Integer" resultType="java.lang.String">
+	  SELECT USER_PROFILE_ROUTE 
+	  FROM ABOUT_ME 
+	  WHERE USER_SEQ = #{user_seq}
+	</select>
+</mapper>
+

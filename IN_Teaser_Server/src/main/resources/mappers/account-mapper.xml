@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.web.curation.mappers.AccountMapper">
+
+	<select id="getMyAccount" parameterType="Integer"
+		resultType="UserProfile">
+		SELECT U.USER_AUTH, U.USER_NICKNAME, U.USER_EMAIL,
+		U.USER_EMAIL_ONOFF, U.USER_NAME,
+		U.USER_NAME_ONOFF,U.USER_INTRO,U.USER_INTRO_ONOFF,
+		A.USER_PROFILE_ROUTE, A.INTERESTS, A.INTERESTS_ONOFF, A.CONTACT,
+		A.CONTACT_ONOFF
+		FROM ABOUT_ME AS A, USER AS U
+		WHERE (U.USER_SEQ = #{user_seq} AND
+		A.USER_SEQ = #{user_seq} );
+	</select>
+
+	<select id="getlikecnt" parameterType="Integer"
+		resultType="Integer">
+		SELECT 
+		(select COALESCE(SUM(feed_like_cnt),0) from FEED where user_seq = #{user_seq}) 
+		+ (SELECT COALESCE(SUM(project_like_cnt),0) FROM PROJECT where user_seq = #{user_seq}) 
+		AS LIKE_CNT;
+	</select>
+
+	<select id="loginUserLike" parameterType="Feed"
+		resultType="Integer">
+		SELECT COUNT(FEEDLIKE_SEQ)
+		FROM FEED_LIKE
+		WHERE USER_SEQ = #{user_seq}
+		AND FEED_SEQ = #{feed_seq}
+	</select>
+
+	<select id="loginUserScrap" parameterType="Feed"
+		resultType="Integer">
+		SELECT COUNT(FEEDSCRAP_SEQ)
+		FROM FEED_SCRAP
+		WHERE USER_SEQ = #{user_seq}
+		AND FEED_SEQ = #{feed_seq}
+	</select>
+
+	<select id="isfollowing" parameterType="FollowList"
+		resultType="Integer">
+		SELECT COUNT(FOLLOWLIST_SEQ) 
+		FROM FOLLOW_LIST 
+		WHERE USER_SEQ = #{user_seq} 
+		AND OPPONENT_SEQ = #{opponent_seq} 
+		AND FOLLOW_STATE = 2;
+	</select>
+	
+	<select id="uploadfeed" parameterType="Pagination"
+		resultType="Feed">
+		<![CDATA[
+		SELECT FEED_SEQ , USER_SEQ , #{user_seq} AS LOGIN_USER_SEQ
+		FROM FEED
+		WHERE USER_SEQ = #{user_seq} 
+			AND DELETEYN = "N" 
+			AND INSERT_DATE+0 < #{max_id} 
+			AND INSERT_DATE+0 >= #{final_id} 
+		ORDER BY INSERT_DATE DESC
+		LIMIT #{count};
+		]]>
+	</select>
+	
+	<select id="uploadfeedbyfriend" parameterType="Pagination"
+		resultType="Feed">
+		<![CDATA[
+		SELECT FEED_SEQ , USER_SEQ , #{user_seq} AS LOGIN_USER_SEQ
+		FROM FEED 
+		WHERE USER_SEQ = #{user_seq}  
+			AND DELETEYN = "N" 
+			AND FEED_SCOPE < 3
+			AND INSERT_DATE+0 < #{max_id} 
+			AND INSERT_DATE+0 >= #{final_id} 
+		ORDER BY INSERT_DATE DESC
+		LIMIT #{count};
+		]]>
+	</select>
+	
+	<select id="uploadfeedbyothers" parameterType="Pagination"
+		resultType="Feed">
+		<![CDATA[
+		SELECT FEED_SEQ , USER_SEQ , #{user_seq} AS LOGIN_USER_SEQ
+		FROM FEED
+		WHERE USER_SEQ = #{user_seq} 
+			AND DELETEYN = "N"
+			AND FEED_SCOPE < 2 
+			AND INSERT_DATE+0 < #{max_id} 
+			AND INSERT_DATE+0 >= #{final_id} 
+		ORDER BY INSERT_DATE DESC
+		LIMIT #{count};
+		]]>
+	</select>
+
+	<select id="likefeed" parameterType="Pagination"
+		resultType="Feed">
+		<![CDATA[
+		SELECT F.FEED_SEQ , FEED.USER_SEQ , #{user_seq} AS LOGIN_USER_SEQ
+		FROM FEED_LIKE AS F, FEED
+		WHERE F.USER_SEQ = #{user_seq}
+			AND F.FEED_SEQ = FEED.FEED_SEQ 
+			AND F.FEED_SEQ NOT IN (SELECT FEED_SEQ FROM FEED WHERE USER_SEQ = #{user_seq})
+			AND F.FEED_SEQ IN (SELECT FEED_SEQ FROM FEED WHERE DELETEYN = "N" )
+			AND FEED.INSERT_DATE+0 < #{max_id} 
+			AND FEED.INSERT_DATE+0 >= #{final_id}
+		ORDER BY FEED.INSERT_DATE DESC
+		LIMIT #{count};
+		]]>
+	</select>
+
+	<select id="likepjt" parameterType="Integer"
+		resultType="Project">
+		 SELECT 
+			PROJECT_SEQ , PROJECT_NAME , PROJECT_INTRO , USER_SEQ , USER_NICKNAME , 
+			REPLACE(REPLACE(REPLACE(REPLACE(PROJECT_DEV_SETTING, 'rrrrr', 'r'), 'ccccc','c' ),'plusplus','++'),'shop','#')AS PROJECT_DEV_SETTING , 
+			( SELECT USER_PROFILE_ROUTE FROM ABOUT_ME WHERE USER_SEQ = PROJECT.USER_SEQ) AS USER_PROFILE_ROUTE 
+		FROM PROJECT
+		WHERE PROJECT_SEQ IN 
+				(SELECT PROJECT_SEQ
+				FROM PROJECT_LIKE
+				WHERE USER_SEQ = #{user_seq}
+				AND PROJECT_SEQ NOT IN ( SELECT PROJECT_SEQ FROM PROJECT WHERE USER_SEQ = #{user_seq}))
+			AND DELETEYN = "N" 
+		ORDER BY INSERT_DATE DESC
+	</select>
+
+	<select id="scrapfeed" parameterType="Pagination"
+		resultType="Feed">
+		<![CDATA[
+		SELECT F.FEED_SEQ , FEED.USER_SEQ , #{user_seq} AS LOGIN_USER_SEQ
+		FROM FEED_SCRAP AS F, FEED
+		WHERE F.USER_SEQ = #{user_seq}
+			AND F.FEED_SEQ = FEED.FEED_SEQ 
+			AND F.FEED_SEQ NOT IN (SELECT FEED_SEQ FROM FEED WHERE USER_SEQ = #{user_seq})
+			AND F.FEED_SEQ IN (SELECT FEED_SEQ FROM FEED WHERE DELETEYN = "N" )
+			AND FEED.INSERT_DATE+0 < #{max_id} 
+			AND FEED.INSERT_DATE+0 >= #{final_id}
+		ORDER BY FEED.INSERT_DATE DESC
+		LIMIT #{count};
+		]]>
+	</select>
+
+	<select id="hidefeed" parameterType="Pagination"
+		resultType="Feed">
+		<![CDATA[
+		SELECT F.FEED_SEQ , FEED.USER_SEQ , #{user_seq} AS LOGIN_USER_SEQ
+		FROM FEED_HIDE AS F , FEED
+		WHERE F.USER_SEQ = #{user_seq}
+			AND F.FEED_SEQ = FEED.FEED_SEQ 
+			AND F.FEED_SEQ NOT IN (SELECT FEED_SEQ FROM FEED WHERE USER_SEQ = #{user_seq})
+			AND F.FEED_SEQ IN (SELECT FEED_SEQ FROM FEED WHERE DELETEYN = "N" )
+			AND FEED.INSERT_DATE+0 < #{max_id} 
+			AND FEED.INSERT_DATE+0 >= #{final_id}
+		ORDER BY FEED.INSERT_DATE DESC
+		LIMIT #{count};
+		]]>
+	</select>
+
+	<select id="readsetting" parameterType="Integer"
+		resultType="UserProfile">
+		SELECT A.ABOUTME_SEQ , U.USER_SEQ , U.USER_NICKNAME, U.USER_AUTH , U.USER_UTILITYYN ,
+			U.USER_EMAIL, U.USER_EMAIL_ONOFF, U.USER_NAME, U.USER_NAME_ONOFF, U.USER_INTRO,
+			U.USER_INTRO_ONOFF, 
+			A.INTERESTS , A.INTERESTS_ONOFF , A.CONTACT , A.CONTACT_ONOFF , A.USER_PROFILE_ROUTE 
+		FROM USER AS U , ABOUT_ME AS A
+		WHERE U.USER_SEQ = #{user_seq} AND A.USER_SEQ = #{user_seq};
+	</select>
+
+	<update id="updateusersetting" parameterType="UserProfile">
+		UPDATE USER
+		SET USER_EMAIL_ONOFF = #{user_email_onoff},
+		USER_NAME_ONOFF = #{user_name_onoff},
+		USER_INTRO = #{user_intro}, USER_INTRO_ONOFF = #{user_intro_onoff}
+		WHERE USER_SEQ = #{user_seq};
+	</update>
+
+	<update id="updateaboutmesetting" parameterType="UserProfile">
+		UPDATE ABOUT_ME
+		SET INTERESTS = #{interests}, 
+		CONTACT = #{contact}, CONTACT_ONOFF = #{contact_onoff}
+		WHERE USER_SEQ = #{user_seq};
+	</update>
+
+	<update id="secession" parameterType="Integer">
+		UPDATE USER
+		SET USER_UTILITYYN = "Y"
+		WHERE USER_SEQ = #{user_seq};
+	</update>
+	
+	<update id="removephoto" parameterType="Integer">
+		UPDATE ABOUT_ME
+		SET USER_PROFILE_ROUTE = ""
+		WHERE USER_SEQ = #{user_seq};
+	</update>
+
+</mapper>

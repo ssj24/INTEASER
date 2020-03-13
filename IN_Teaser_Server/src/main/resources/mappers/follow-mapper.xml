@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.web.curation.mappers.FollowMapper">
+
+	<select id="followingcnt" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT COUNT(USER_SEQ) FROM FOLLOW_LIST
+		WHERE USER_SEQ = #{user_seq}
+		AND FOLLOW_STATE = 2
+		AND ACCEPTYN = "Y";
+	</select>
+
+	<select id="following" parameterType="User"
+		resultType="FollowList">
+		SELECT FOLLOWLIST_SEQ, FOLLOW_STATE, USER_SEQ,
+		USER_NICKNAME, OPPONENT_SEQ, OPPONENT_NICKNAME, OPPONENT_AUTH,
+		ACCEPTYN, NEW_RESULT, OLD_BUFFER FROM FOLLOW_LIST
+		WHERE USER_SEQ = #{user_seq}
+		AND FOLLOW_STATE = 2
+		AND ACCEPTYN = "Y";
+	</select>
+
+	<select id="followercnt" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT COUNT(USER_SEQ) FROM FOLLOW_LIST
+		WHERE USER_SEQ = #{user_seq}
+		AND FOLLOW_STATE = 1
+		AND ACCEPTYN = "Y";
+	</select>
+
+	<select id="follower" parameterType="User"
+		resultType="FollowList">
+		SELECT FOLLOWLIST_SEQ, FOLLOW_STATE, USER_SEQ,
+		USER_NICKNAME, OPPONENT_SEQ, OPPONENT_NICKNAME, OPPONENT_AUTH,
+		ACCEPTYN, NEW_RESULT, OLD_BUFFER FROM FOLLOW_LIST
+		WHERE USER_SEQ = #{user_seq}
+		AND FOLLOW_STATE = 1
+		AND ACCEPTYN = "Y";
+	</select>
+
+	<select id="requestcnt" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT COUNT(USER_SEQ) FROM FOLLOW_LIST
+		WHERE USER_SEQ = #{user_seq}
+		AND FOLLOW_STATE = 1
+		AND ACCEPTYN = "I"
+		AND NEW_RESULT = TRUE;
+	</select>
+
+	<select id="allrequestcnt" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT COUNT(USER_SEQ) FROM FOLLOW_LIST
+		WHERE USER_SEQ = #{user_seq}
+		AND FOLLOW_STATE = 1
+		AND ACCEPTYN = "I";
+	</select>
+
+	<select id="requestfollower" parameterType="User"
+		resultType="FollowList">
+		SELECT FOLLOWLIST_SEQ, FOLLOW_STATE, USER_SEQ,
+		USER_NICKNAME,OPPONENT_NICKNAME, OPPONENT_AUTH, ACCEPTYN, NEW_RESULT,
+		OLD_BUFFER FROM FOLLOW_LIST
+		WHERE USER_SEQ = #{user_seq}
+		AND FOLLOW_STATE = 1
+		AND ACCEPTYN = "I";
+	</select>
+
+	<select id="noticecnt" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT COUNT(USER_SEQ) FROM NOTICE
+		WHERE USER_SEQ =
+		#{user_seq}
+		AND NEW_CONTENTYN = TRUE;
+	</select>
+
+	<select id="allnoticecnt" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT COUNT(USER_SEQ) FROM NOTICE
+		WHERE USER_SEQ =
+		#{user_seq};
+	</select>
+
+	<select id="noticelist" parameterType="User" resultType="Notice">
+		SELECT
+		NOTICE_SEQ, USER_SEQ, USER_NICKNAME, OPPONENT_NICKNAME,
+		NOTICE_CONTENT, NEW_CONTENTYN, OLD_BUFFER, NOTICE_TABYN , FEED_SEQ , PROJECT_SEQ 
+		FROM NOTICE
+		WHERE USER_SEQ = #{user_seq}
+		AND NOTICE_TABYN = TRUE
+		ORDER BY INSERT_DATE DESC;
+	</select>
+
+	<select id="noticecenterlist" parameterType="User"
+		resultType="Notice">
+		SELECT NOTICE_SEQ, USER_SEQ, USER_NICKNAME,
+		OPPONENT_NICKNAME, NOTICE_CONTENT, NEW_CONTENTYN, OLD_BUFFER,
+		NOTICE_TABYN , FEED_SEQ , PROJECT_SEQ 
+		FROM NOTICE
+		WHERE USER_SEQ = #{user_seq}
+		ORDER BY INSERT_DATE DESC
+		LIMIT 5;
+	</select>
+
+	<update id="checknewrequest1" parameterType="User">
+		UPDATE NOTICE SET
+		OLD_BUFFER = TRUE
+		WHERE USER_SEQ = #{user_seq}
+		AND NOTICE_TABYN = FALSE;
+	</update>
+
+	<update id="checknewrequest2" parameterType="User">
+		UPDATE FOLLOW_LIST
+		SET OLD_BUFFER = TRUE
+		WHERE USER_SEQ = #{user_seq};
+	</update>
+
+	<update id="checknewnotice" parameterType="User">
+		UPDATE NOTICE SET
+		OLD_BUFFER = TRUE
+		WHERE USER_SEQ = #{user_seq}
+		AND NOTICE_TABYN = TRUE;
+	</update>
+
+	<update id="newCheck1" parameterType="User">
+		UPDATE FOLLOW_LIST SET
+		NEW_RESULT = FALSE
+		WHERE USER_SEQ = #{user_seq}
+		AND OLD_BUFFER = TRUE;
+
+	</update>
+
+	<update id="newCheck2" parameterType="User">
+		UPDATE NOTICE SET
+		NEW_CONTENTYN = FALSE
+		WHERE USER_SEQ = #{user_seq}
+		AND OLD_BUFFER =
+		TRUE;
+	</update>
+
+	<select id="canFollow1" parameterType="Communication"
+		resultType="java.lang.Integer">
+		SELECT COUNT(USER_NICKNAME) FROM FOLLOW_LIST
+		WHERE USER_NICKNAME = #{user_nickname}
+		AND OPPONENT_NICKNAME = #{opponent_nickname}
+		AND FOLLOW_STATE = 2
+		AND ACCEPTYN != "N";
+	</select>
+
+	<select id="canFollow2" parameterType="Communication"
+		resultType="String">
+		SELECT ACCEPTYN FROM FOLLOW_LIST
+		WHERE USER_NICKNAME = #{user_nickname}
+		AND OPPONENT_NICKNAME = #{opponent_nickname}
+		AND FOLLOW_STATE = 2
+		AND ACCEPTYN != "N";
+	</select>
+
+	<insert id="requestfollowing1" parameterType="Communication">
+		INSERT INTO
+		FOLLOW_LIST(USER_SEQ, FOLLOW_STATE, USER_NICKNAME, OPPONENT_SEQ,
+		OPPONENT_NICKNAME, OPPONENT_AUTH, ACCEPTYN)
+		VALUES (#{user_seq}, 2, #{user_nickname}, (SELECT USER_SEQ FROM USER WHERE
+		USER_NICKNAME = #{opponent_nickname}), #{opponent_nickname},
+		#{opponent_auth}, "I");
+	</insert>
+
+	<insert id="requestfollowing2" parameterType="Communication">
+		INSERT INTO
+		FOLLOW_LIST(USER_SEQ, FOLLOW_STATE, USER_NICKNAME, OPPONENT_SEQ,
+		OPPONENT_NICKNAME, OPPONENT_AUTH, ACCEPTYN)
+		VALUES ((SELECT USER_SEQ FROM USER WHERE USER_NICKNAME =
+		#{opponent_nickname}), 1, #{opponent_nickname}, #{user_seq},
+		#{user_nickname}, #{user_auth}, "I");
+	</insert>
+
+	<insert id="requestfollowing3" parameterType="Communication">
+		INSERT INTO
+		NOTICE(USER_SEQ, USER_NICKNAME, OPPONENT_NICKNAME, NOTICE_CONTENT,
+		NOTICE_TABYN)
+		VALUES ((SELECT USER_SEQ FROM USER WHERE USER_NICKNAME =
+		#{opponent_nickname}), #{opponent_nickname}, #{user_nickname},
+		#{temp}, FALSE);
+	</insert>
+
+	<insert id="requestfollowing4" parameterType="Communication">
+		INSERT INTO
+		NOTICE(USER_SEQ, USER_NICKNAME, OPPONENT_NICKNAME, NOTICE_CONTENT)
+		VALUES (#{user_seq}, #{user_nickname}, #{opponent_nickname}, #{temp});
+	</insert>
+
+	<delete id="requestunfollowing1" parameterType="Communication">
+		DELETE FROM
+		FOLLOW_LIST
+		WHERE USER_NICKNAME = #{user_nickname}
+		AND OPPONENT_NICKNAME =
+		#{opponent_nickname}
+	</delete>
+
+	<delete id="requestunfollowing2" parameterType="Communication">
+		DELETE FROM
+		FOLLOW_LIST
+		WHERE USER_NICKNAME = #{opponent_nickname}
+		AND OPPONENT_NICKNAME =
+		#{user_nickname}
+	</delete>
+
+	<update id="answer1" parameterType="FollowList">
+		UPDATE FOLLOW_LIST SET
+		ACCEPTYN = #{acceptYN}, NEW_RESULT = TRUE
+		WHERE FOLLOW_STATE = 1
+		AND USER_NICKNAME = #{user_nickname}
+		AND
+		OPPONENT_NICKNAME = #{opponent_nickname}
+		AND ACCEPTYN = "I";
+	</update>
+
+	<update id="answer2" parameterType="FollowList">
+		UPDATE FOLLOW_LIST SET
+		ACCEPTYN = #{acceptYN}, NEW_RESULT = TRUE
+		WHERE FOLLOW_STATE = 2
+		AND
+		USER_NICKNAME = #{opponent_nickname}
+		AND OPPONENT_NICKNAME =
+		#{user_nickname}
+		AND ACCEPTYN = "I";
+	</update>
+
+	<insert id="answer3" parameterType="Communication">
+		INSERT INTO NOTICE(USER_SEQ,
+		USER_NICKNAME, OPPONENT_NICKNAME, NOTICE_CONTENT)
+		VALUES ((SELECT USER_SEQ FROM USER WHERE USER_NICKNAME =
+		#{opponent_nickname}), #{opponent_nickname}, #{user_nickname},
+		#{temp});
+	</insert>
+
+	<select id="checknotice" parameterType="User"
+		resultType="java.lang.Integer">
+		SELECT COUNT(USER_SEQ) FROM NOTICE
+		WHERE USER_SEQ = #{user_seq}
+		AND OLD_BUFFER = FALSE;
+	</select>
+
+	<delete id="deleteReject" parameterType="Communication">
+		DELETE FROM FOLLOW_LIST
+		WHERE USER_SEQ = #{user_seq}
+		AND ACCEPTYN="N";
+	</delete>
+
+	<select id="getauth" parameterType="String"
+		resultType="java.lang.Integer">
+		SELECT USER_AUTH FROM USER
+		WHERE USER_NICKNAME =
+		#{nickname};
+	</select>
+
+	<delete id="deletenotification" parameterType="Notice">
+		DELETE FROM NOTICE
+		WHERE USER_SEQ = #{user_seq}
+		AND NOTICE_SEQ = #{notice_seq};
+	</delete>
+
+	<select id="getinterest" parameterType="Integer"
+		resultType="String">
+		SELECT IFNULL(INTERESTS,"") AS INTERESTS FROM ABOUT_ME
+		WHERE USER_SEQ = #{user_seq};
+	</select>
+
+	<select id="getrandom" parameterType="UserProfile"
+		resultType="UserProfile">
+		SELECT USER_SEQ , USER_NICKNAME , USER_PROFILE_ROUTE ,
+		INTERESTS
+		FROM ABOUT_ME
+		WHERE INTERESTS = #{interests}
+		AND USER_SEQ != (SELECT USER_SEQ FROM USER
+		WHERE USER_UTILITYYN = "N" AND USER_SEQ = #{user_seq});
+	</select>
+</mapper>

@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css?family=Arimo:400,700&display=swap');
+body{
+  font-family: 'Arimo', sans-serif;
+}
+h2{
+  color:#000;
+  text-align:center;
+  font-size:2em;
+}
+.warpper{
+  width: 100%;
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.tabs {
+  margin-top: 20px;
+  width: 800px;
+}
+.tab{
+  font-size: 1.3em;
+  cursor: pointer;
+  width: 25%;
+  padding: 10px;
+  margin: 0px auto;
+  background: rgb(10, 87, 10);
+  display:inline-block;
+  border-radius:3px 3px 0px 0px;
+  /* box-shadow: 0rem 0.5rem 0.8rem #00000080; */
+  color: transparent;      
+  text-shadow: 2px 2px 3px rgba(255, 255, 255, 0.5);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  background-color: #656865;
+   
+}
+
+.panels{
+  background:transparent;
+  /* box-shadow: 0 2rem 2rem #00000080; */
+  min-height:200px;
+  max-width: 700px;
+  min-width:700px;
+  border-radius:3px;
+  margin-top: 60px;
+}
+.panel{
+  background-color: transparent;
+  display:none;
+  animation: fadein .8s;
+  padding: 20px;
+  /* box-shadow: -5px -5px 10px 5px rgba(119, 119, 119, .1), 10px 10px 10px 5px rgba(255, 255, 255, 1); */
+  border-color: #f7f5ec;
+}
+.panel a:hover {
+  color: #000;
+  font-weight: 900;
+}
+@keyframes fadein {
+    from {
+        opacity:0;
+    }
+    to {
+        opacity:1;
+    }
+}
+.panel-title{
+  font-size:1.5em;
+  font-weight:bold
+}
+.radio{
+  display:none;
+}
+#one:checked ~ .panels #one-panel,
+#two:checked ~ .panels #two-panel,
+#three:checked ~ .panels #three-panel,
+#four:checked ~ .panels #four-panel
+{
+  display:block;
+
+}
+#one:checked ~ .tabs #one-tab,
+#two:checked ~ .tabs #two-tab,
+#three:checked ~ .tabs #three-tab,
+#four:checked ~ .tabs #four-tab
+{
+  color: transparent;      
+  text-shadow: 2px 2px 3px rgba(255, 255, 255, 0.363);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  background-color: #0a350a;
+  font-size: 1.3em;
+  box-shadow: 10px 10px 10px 10px rgba(119, 119, 119, .1), -10px -10px 10px 10px rgba(255, 255, 255, 1);
+  border-top: 3px solid rgb(5, 65, 5);
+}
